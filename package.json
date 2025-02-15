@@ -1,0 +1,24 @@
+{
+  "name": "patchouli",
+  "version": "1.0.0",
+  "description": "Gestionnaire de patch git en powershell",
+  "main": "Patch.psm1",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Phreno/patchouli.git"
+  },
+  "keywords": [
+    "git",
+    "patch",
+    "powershell"
+  ],
+  "author": "Phreno",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Phreno/patchouli/issues"
+  },
+  "homepage": "https://github.com/Phreno/patchouli#readme"
+}
