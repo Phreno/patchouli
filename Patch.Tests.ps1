@@ -9,4 +9,7 @@ Describe "La configuration du patch" {
         (New-PatchConfiguration -Repository $PSScriptRoot).Repository.BaseName | Should -Be patchouli
         (New-PatchConfiguration -Repository "../").Repository.BaseName | Should -Not -Be patchouli 
     }
+    It "Assure que le repository git cible soit valide" {
+        "$((New-PatchConfiguration).Repository)/.git" | Test-Path | Should -Be $True 
+    }
 }

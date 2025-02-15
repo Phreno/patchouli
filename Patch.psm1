@@ -1,5 +1,5 @@
 function New-Configuration {
     Param($Repository="./")
-    @{ Repository = ($Repository | Get-Item) }
+    @{ Repository = ($Repository | Get-Item ) }
 }
 
