@@ -4,7 +4,7 @@
   "description": "Gestionnaire de patch git en powershell",
   "main": "Patch.psm1",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nodemon --exec 'powershell -NoProfile -c Invoke-Pester' -e psm1,ps1"
   },
   "repository": {
     "type": "git",
