@@ -5,8 +5,8 @@
   "main": "Patch.psm1",
   "scripts": {
     "test": "powershell -c Invoke-Pester",
-    "watch": "nodemon --exec 'npm run test' -e psm1,ps1",
-    "commit": "npm run test; aicommits --all; git push"
+    "commit": "aicommits --all; git push",
+    "watch": "nodemon --exec 'npm run test && npm run commit' -e psm1,ps1"
   },
   "repository": {
     "type": "git",
