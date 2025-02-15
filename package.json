@@ -8,7 +8,7 @@
     "checkGreen": "npm run test | tail -n 1 | grep 'Failed: 0'",
     "commit": "aicommits --all; git push",
     "publish": "npm run checkGreen && npm run commit",
-    "watch": "nodemon --exec 'npm run test' -e psm1,ps1"
+    "watch": "nodemon --exec 'npm run test' -e psm1,ps1,json"
   },
   "repository": {
     "type": "git",
