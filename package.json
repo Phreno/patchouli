@@ -4,7 +4,8 @@
   "description": "Gestionnaire de patch git en powershell",
   "main": "Patch.psm1",
   "scripts": {
-    "test": "nodemon --exec 'powershell -NoProfile -c Invoke-Pester' -e psm1,ps1"
+    "test": "nodemon --exec 'powershell -NoProfile -c Invoke-Pester' -e psm1,ps1",
+    "commit": "git commit -a; aicommits"
   },
   "repository": {
     "type": "git",
