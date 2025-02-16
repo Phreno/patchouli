@@ -91,6 +91,11 @@ Describe "La selection de patchs" {
     Context "Si fzf n'est pas disponible" {
         BeforeEach {
             Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
+            Mock -ModuleName Patchouli Select-ByIndex { return "file1.patch" }
+        }
+        It "Selectionne par index" {
+            Select-PatchFile
+            Assert-MockCalled -ModuleName Patchouli Select-ByIndex -Exactly 1
         }
         
     }
