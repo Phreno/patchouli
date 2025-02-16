@@ -58,7 +58,6 @@ Describe "La selection d'un patch" {
     Context "Si fzf n'est pas disponible" {
         BeforeAll {
             Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ Name = "file1.patch" }) } -ParameterFilter { $Filter -eq "*.patch" }
-            Mock -ModuleName Patchouli Select-Object { return [PSCustomObject]@{ Name = "file1.patch" } }
             Mock -ModuleName Patchouli fzf { throw "fzf not found" }
         }
         It "Permet de selectionner un patch via Select-Object" {
