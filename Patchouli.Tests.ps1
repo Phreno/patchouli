@@ -44,30 +44,24 @@ Describe "La configuration du patch" {
 }
 
 
-Describe "La selection d'un patch" {
-    Context "Si fzf est disponible (Mocked)" {
+Describe "La selection avec fzf" {
+    Context "Si fzf est disponible" {
         BeforeEach {
-            Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" }) } -ParameterFilter { $Filter -eq "*.patch" }
             Mock -ModuleName Patchouli Select-Object { return "file1.patch" } -ParameterFilter { $ExpandProperty -eq "FullName" }
-            Mock -ModuleName Patchouli Test-FzfAvailability { return $true }
             Mock -ModuleName Patchouli fzf { return "file1.patch" }
         }
-        It "Liste les patchs disponibles" {
-            Select-PatchFile
-            Assert-MockCalled -ModuleName Patchouli Get-ChildItem -ParameterFilter { $Filter -eq "*.patch" } -Exactly 1
-        }
-
         It "Affiche le FullName" {
-            Select-PatchFile
+            Select-PatchWithFzf
             Assert-MockCalled -ModuleName Patchouli Select-Object -ParameterFilter { $ExpandProperty -eq "FullName" } -Exactly 1
         }
-
         It "Selectionne avec fzf" {
-            Select-PatchFile
+            Select-PatchWithFzf
             Assert-MockCalled -ModuleName Patchouli fzf -Exactly 1
         }
     }
-    Context "Si fzf n'est pas disponible" {
+}
+
+Describe "La selection par index" {
         BeforeEach {
             Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" } ,[PSCustomObject]@{ FullName = "file2.patch" } ) } -ParameterFilter { $Filter -eq "*.patch" }
             Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
@@ -83,4 +77,22 @@ Describe "La selection d'un patch" {
     
     }
 
+Describe "La selection de patchs" {
+    Context "Si fzf est disponible" {
+        BeforeEach {
+            Mock -ModuleName Patchouli Test-FzfAvailability { return $true }
+            Mock -ModuleName Patchouli Select-WithFzf { return "file1.patch" }
+        }
+        It "Selectionne avec fzf" {
+            Select-PatchFile
+            Assert-MockCalled -ModuleName Patchouli Select-WithFzf -Exactly 1
+        }
+    }
+    Context "Si fzf n'est pas disponible" {
+        BeforeEach {
+            Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
+        }
+        
+    }
 }
+

@@ -32,6 +32,18 @@ function Select-ByIndex {
         return $null
     }
 }
+
+
+function Select-WithFzf { 
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
+        [hashtable]$Configuration = (New-Configuration)
+    )    
+    $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf --multiple --preview "cat {}"
+}
+
 function Select-File {
     [CmdletBinding()]
     param(
@@ -39,12 +51,9 @@ function Select-File {
         [ValidateNotNullOrEmpty()]
         [hashtable]$Configuration = (New-Configuration)
     )
-    begin {
-        function Select-WithFzf { $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf }
-    }
     process {
         if (Test-FzfAvailability) { $result = Select-WithFzf }
-        else { $result = "file1.patch" }
+        else { $result = Select-ByIndex -Configuration $Configuration }
         if ($null -ne $result) { return $result.Trim() }
         return $null
     }
