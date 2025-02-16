@@ -43,14 +43,28 @@ Describe "La configuration du patch" {
     }
 }
 Describe "La selection d'un patch" {
-    BeforeAll {
-        "test content" | Out-File -FilePath "file1.patch"
-        Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ Name = "file1.patch" }) } -ParameterFilter { $Filter -eq "*.patch" }
-        Mock -ModuleName Patchouli fzf { return "file1.patch" }
+    Context "Si fzf est disponible (Mocked)" {
+        BeforeAll {
+            "test content" | Out-File -FilePath "file1.patch"
+            Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ Name = "file1.patch" }) } -ParameterFilter { $Filter -eq "*.patch" }
+            Mock -ModuleName Patchouli fzf { return "file1.patch" }
+        }
+
+        It "Permet de selectionner un patch via fzf" {
+            $result = Select-PatchFile
+            $result | Should -Be "file1.patch"
+        }
+    }
+    Context "Si fzf n'est pas disponible" {
+        BeforeAll {
+            Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ Name = "file1.patch" }) } -ParameterFilter { $Filter -eq "*.patch" }
+            Mock -ModuleName Patchouli Select-Object { return [PSCustomObject]@{ Name = "file1.patch" } }
+            Mock -ModuleName Patchouli fzf { throw "fzf not found" }
+        }
+        It "Permet de selectionner un patch via Select-Object" {
+            $result = Select-PatchFile
+            $result | Should -Be "file1.patch"
+        }
     }
 
-    It "Permet de selectionner un patch via fzf" {
-        $result = Select-PatchFile
-        $result | Should -Be "file1.patch"
-    }
 }

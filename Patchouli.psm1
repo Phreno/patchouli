@@ -20,8 +20,18 @@ function Select-File {
         [ValidateNotNullOrEmpty()]
         [hashtable]$Configuration = (New-Configuration)
     )
+    begin {
+        function Test-FzfAvailability {
+            try { fzf --version | Out-Null; return $true }
+            catch { return $false }
+        }
+        function Select-WithFzf {
+            $Configuration.Patchs | Select-Object -ExpandProperty Name | fzf
+        }
+    }
     process {
-        $result = $Configuration.Patchs | Select-Object -ExpandProperty Name | fzf
+        if (Test-FzfAvailability) { $result = Select-WithFzf }
+        else { $result = "file1.patch" }
         if ($null -ne $result) { return $result.Trim() }
         return $null
     }
