@@ -42,6 +42,8 @@ Describe "La configuration du patch" {
         }
     }
 }
+
+
 Describe "La selection d'un patch" {
     Context "Si fzf est disponible (Mocked)" {
         BeforeEach {
@@ -67,12 +69,14 @@ Describe "La selection d'un patch" {
     }
     Context "Si fzf n'est pas disponible" {
         BeforeEach {
-            Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" }) } -ParameterFilter { $Filter -eq "*.patch" }
-            Mock -ModuleName Patchouli Select-Object { return "file1.patch" } -ParameterFilter { $ExpandProperty -eq "FullName" }
+            Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" } ,[PSCustomObject]@{ FullName = "file2.patch" } ) } -ParameterFilter { $Filter -eq "*.patch" }
             Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
         }
-        It "Selectionne le premier patch" {
-            Select-PatchFile | Should -Be "file1.patch"
+        Context "Un id peut etre utilise" {
+            It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex | Should -Be "file1.patch" }
+            It "Retourne le patch par index" { Select-PatchByIndex -Index 0 | Should -Be "file1.patch" }
+            It "Retourne le patch par index" { Select-PatchByIndex -Index 1 | Should -Be "file2.patch" }
+
         }
     
     }

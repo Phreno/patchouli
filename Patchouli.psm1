@@ -15,6 +15,21 @@ function Test-FzfAvailability {
     try { fzf --version | Out-Null; return $true }
     catch { return $false }
 }
+
+function Select-ByIndex {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
+        [hashtable]$Configuration = (New-Configuration),
+        [Parameter(ValueFromPipeline)]
+        [int]$Index = 0
+    )
+    process {
+        if ($Index -lt $Configuration.Patchs.Count) { return $Configuration.Patchs[$Index].FullName }
+        return $null
+    }
+}
 function Select-File {
     [CmdletBinding()]
     param(
@@ -23,9 +38,7 @@ function Select-File {
         [hashtable]$Configuration = (New-Configuration)
     )
     begin {
-        function Select-WithFzf {
-            $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf
-        }
+        function Select-WithFzf { $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf }
     }
     process {
         if (Test-FzfAvailability) { $result = Select-WithFzf }
