@@ -46,9 +46,14 @@ Describe "La configuration du patch" {
 
 Describe "La selection avec fzf" {
     Context "Si fzf est disponible" {
-        BeforeEach {
+        BeforeAll{
+            Mock -ModuleName Patchouli New-Configuration { return @{ Patchs = @([PSCustomObject]@{ FullName = "file1.patch" }) } }
             Mock -ModuleName Patchouli Select-Object { return "file1.patch" } -ParameterFilter { $ExpandProperty -eq "FullName" }
             Mock -ModuleName Patchouli fzf { return "file1.patch" }
+        }
+        It "Genere une nouvelle configuration" {
+            Select-PatchWithFzf
+            Assert-MockCalled -ModuleName Patchouli New-Configuration -Exactly 1
         }
         It "Affiche le FullName" {
             Select-PatchWithFzf
@@ -92,10 +97,19 @@ Describe "La selection de patchs" {
         BeforeEach {
             Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
             Mock -ModuleName Patchouli Select-ByIndex { return "file1.patch" }
+            Mock -ModuleName Patchouli Read-Host { return 0 }
         }
         It "Selectionne par index" {
             Select-PatchFile
             Assert-MockCalled -ModuleName Patchouli Select-ByIndex -Exactly 1
+        }
+        Context "Avec une saisie utilisateur" {
+            BeforeEach {
+            }
+            It "Demande un index" {
+                Select-PatchFile
+                Assert-MockCalled -ModuleName Patchouli Read-Host -Exactly 1
+            }
         }
         
     }

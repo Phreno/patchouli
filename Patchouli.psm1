@@ -41,7 +41,7 @@ function Select-WithFzf {
         [ValidateNotNullOrEmpty()]
         [hashtable]$Configuration = (New-Configuration)
     )    
-    $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf --multiple --preview "cat {}"
+    $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf -m --preview "cat {}"
 }
 
 function Select-File {
@@ -49,11 +49,16 @@ function Select-File {
     param(
         [Parameter(ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
-        [hashtable]$Configuration = (New-Configuration)
+        [hashtable]$Configuration = (New-Configuration),
+        [switch]$ByIndex
     )
     process {
-        if (Test-FzfAvailability) { $result = Select-WithFzf }
-        else { $result = Select-ByIndex -Configuration $Configuration }
+        if (-not $ByIndex -and (Test-FzfAvailability)) { $result = Select-WithFzf -Configuration $Configuration }
+        else { 
+            $index = 0
+            $Configuration.Patchs | ForEach-Object { Write-Host "[$index]`t$($_.FullName)"; $index++ }
+            $index = Read-Host "Select a patch by index"
+            $result = Select-ByIndex -Configuration $Configuration -Index $index}
         if ($null -ne $result) { return $result.Trim() }
         return $null
     }
