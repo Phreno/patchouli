@@ -4,6 +4,28 @@ BeforeAll {
 
 Describe "La configuration du patch" {
     It "Recupere un objet de configuration" { New-PatchConfiguration | Should -BeOfType HashTable }
+    Describe "La propriete Patchs" {
+        Context "Le repository git contient des patchs" {
+            BeforeEach { 
+                Mock -ModuleName Patchouli Get-ChildItem {
+                    return @(
+                        [PSCustomObject]@{ Name = "file1.patch" },
+                        [PSCustomObject]@{ Name = "file2.patch" }
+                    )
+                } -ParameterFilter { $Filter -eq "*.patch" }
+            }
+            It "Recupere les patchs du repository git" { 
+                $result = New-PatchConfiguration
+                $result.Patchs.Count | Should -Be 2
+                $result.Patchs[0].Name | Should -Be "file1.patch"
+            }
+        }
+
+        Context "Le repository git ne contient pas de patchs" {
+            BeforeEach { Mock -ModuleName Patchouli Get-ChildItem { return @() } -ParameterFilter { $Filter -eq "*.patch" } }
+            It "Retourne un tableau vide" { (New-PatchConfiguration).Patchs | Should -BeNullOrEmpty }
+        }
+    }
     Describe "La propriete Repository" {
         Context "Le repository git est valide" {
             BeforeEach { Mock -ModuleName Patchouli Test-Path { return $true } }

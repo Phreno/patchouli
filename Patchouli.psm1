@@ -1,9 +1,14 @@
 function New-Configuration {
- [CmdletBinding()]
+    [CmdletBinding()]
     Param(
-    [ValidateScript({ "$_/.git" | Test-Path })]$Repository="./")
-    @{
-        Repository = ($Repository | Get-Item )
+        [ValidateScript({ Test-Path "$_/.git" -PathType Container })]
+        [Parameter(ValueFromPipeline)]$Repository = "./",
+        [ValidateScript({ Test-Path $_ -PathType Container })]
+        [Parameter()]$Patchs = "./"  
+    )
+    @{ 
+        Repository = ($Repository | Get-Item );
+        Patchs     = ($Patchs | Get-ChildItem -Filter *.patch -Recurse)
     }
 }
 
