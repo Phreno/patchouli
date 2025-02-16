@@ -59,6 +59,7 @@ function Select-File {
             $Configuration.Patchs | ForEach-Object { Write-Host "[$index]`t$($_.FullName)"; $index++ }
             $index = Read-Host "Select a patch by index or press 'a' to select all"
             if ($index -eq 'a') { $result = Select-ByIndex -Configuration $Configuration -All }
+            elseif ($index -eq 'q') { return $null }
             else { $result = Select-ByIndex -Configuration $Configuration -Index $index}
             if ($null -ne $result) { return $result.Trim() }
             return $null

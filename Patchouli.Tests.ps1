@@ -115,6 +115,10 @@ Describe "La selection de patchs" {
                 Assert-MockCalled -ModuleName Patchouli Read-Host -Exactly 1
             }
         }
+        Context "Annule la selection" {
+            BeforeEach { Mock -ModuleName Patchouli Read-Host { return 'q' } }
+            It "Retourne un tableau vide" { Select-PatchFile | Should -BeNullOrEmpty }
+        }
         Context "Demande tous les patchs" {
             BeforeEach { Mock -ModuleName Patchouli Read-Host { return 'a' } }
             It "Retourne tous les patchs" {
