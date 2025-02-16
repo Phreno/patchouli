@@ -46,7 +46,7 @@ Describe "La configuration du patch" {
 
 Describe "La selection avec fzf" {
     Context "Si fzf est disponible" {
-        BeforeAll{
+        BeforeAll {
             Mock -ModuleName Patchouli New-Configuration { return @{ Patchs = @([PSCustomObject]@{ FullName = "file1.patch" }) } }
             Mock -ModuleName Patchouli Select-Object { return "file1.patch" } -ParameterFilter { $ExpandProperty -eq "FullName" }
             Mock -ModuleName Patchouli fzf { return "file1.patch" }
@@ -67,20 +67,20 @@ Describe "La selection avec fzf" {
 }
 
 Describe "La selection par index" {
-        BeforeEach {
-            Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" } ,[PSCustomObject]@{ FullName = "file2.patch" } ) } -ParameterFilter { $Filter -eq "*.patch" }
-            Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
-        }
-        Context "Un id peut etre utilise" {
-            It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex | Should -Be "file1.patch" }
-            It "Retourne le patch par index" { Select-PatchByIndex -Index 0 | Should -Be "file1.patch" }
-            It "Retourne le patch par index" { Select-PatchByIndex -Index 1 | Should -Be "file2.patch" }
-        }
-        Context "Tous les patchs peuvent etre selectionnes" {
-            It "Retourne tous les patchs" { Select-PatchByIndex -All | Should -Be @("file1.patch", "file2.patch") }
-        }
-    
+    BeforeEach {
+        Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" } , [PSCustomObject]@{ FullName = "file2.patch" } ) } -ParameterFilter { $Filter -eq "*.patch" }
+        Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
     }
+    Context "Un id peut etre utilise" {
+        It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex | Should -Be "file1.patch" }
+        It "Retourne le patch par index" { Select-PatchByIndex -Index 0 | Should -Be "file1.patch" }
+        It "Retourne le patch par index" { Select-PatchByIndex -Index 1 | Should -Be "file2.patch" }
+    }
+    Context "Tous les patchs peuvent etre selectionnes" {
+        It "Retourne tous les patchs" { Select-PatchByIndex -All | Should -Be @("file1.patch", "file2.patch") }
+    }
+    
+}
 
 Describe "La selection de patchs" {
     Context "Si fzf est disponible" {
@@ -98,20 +98,31 @@ Describe "La selection de patchs" {
             Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
             Mock -ModuleName Patchouli Select-ByIndex { return "file1.patch" }
             Mock -ModuleName Patchouli Read-Host { return 0 }
+            Mock -ModuleName Patchouli Write-Host {} -ParameterFilter { $Object -match "file\d.patch" }
+            Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" } , [PSCustomObject]@{ FullName = "file2.patch" } ) } -ParameterFilter { $Filter -eq "*.patch" }
         }
         It "Selectionne par index" {
             Select-PatchFile
             Assert-MockCalled -ModuleName Patchouli Select-ByIndex -Exactly 1
         }
-        Context "Avec une saisie utilisateur" {
-            BeforeEach {
-            }
-            It "Demande un index" {
+        It "Affiche les patchs disponibles" {
+            Select-PatchFile
+            Assert-MockCalled -ModuleName Patchouli Write-Host -Exactly 2
+        }
+        Context "Demande un index" {
+            It "Lit l'index fourni par l'utilisateur" {
                 Select-PatchFile
                 Assert-MockCalled -ModuleName Patchouli Read-Host -Exactly 1
             }
         }
-        
+        Context "Demande tous les patchs" {
+            BeforeEach { Mock -ModuleName Patchouli Read-Host { return 'a' } }
+            It "Retourne tous les patchs" {
+                Select-PatchFile
+                Assert-MockCalled -ModuleName Patchouli Select-ByIndex -ParameterFilter { $All -eq $true } -Exactly 1
+            }
+
+        }
     }
 }
 
