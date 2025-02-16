@@ -11,8 +11,10 @@ function New-Configuration {
         Patchs     = ($Patchs | Get-ChildItem -Filter *.patch -Recurse)
     }
 }
-
-
+function Test-FzfAvailability {
+    try { fzf --version | Out-Null; return $true }
+    catch { return $false }
+}
 function Select-File {
     [CmdletBinding()]
     param(
@@ -21,10 +23,6 @@ function Select-File {
         [hashtable]$Configuration = (New-Configuration)
     )
     begin {
-        function Test-FzfAvailability {
-            try { fzf --version | Out-Null; return $true }
-            catch { return $false }
-        }
         function Select-WithFzf {
             $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf
         }
