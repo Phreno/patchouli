@@ -26,7 +26,7 @@ function Select-File {
             catch { return $false }
         }
         function Select-WithFzf {
-            $Configuration.Patchs | Select-Object -ExpandProperty Name | fzf
+            $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf
         }
     }
     process {
