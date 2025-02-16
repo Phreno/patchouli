@@ -130,3 +130,19 @@ Describe "La selection de patchs" {
     }
 }
 
+Describe "Creer un patch" -skip {
+
+}
+
+Describe "Applique un patch" -skip {
+
+}
+
+Describe "Supprime un patch" -skip {
+
+}
+
+Describe "Actualise un patch" -skip {
+
+}
+
