@@ -65,15 +65,16 @@ Describe "La selection d'un patch" {
             Assert-MockCalled -ModuleName Patchouli fzf -Exactly 1
         }
     }
-    # Context "Si fzf n'est pas disponible" {
-    #     BeforeAll {
-    #         Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" }, [PSCustomObject]@{ FullName = "file2.patch" }) } -ParameterFilter { $Filter -eq "*.patch" }
-    #         Mock -ModuleName Patchouli fzf { throw "fzf not found" }
-    #     }
-    #     It "Permet de selectionner un patch via Select-Object" {
-    #         $result = Select-PatchFile
-    #         $result | Should -Be "file1.patch"
-    #     }
-    # }
+    Context "Si fzf n'est pas disponible" {
+        BeforeEach {
+            Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" }) } -ParameterFilter { $Filter -eq "*.patch" }
+            Mock -ModuleName Patchouli Select-Object { return "file1.patch" } -ParameterFilter { $ExpandProperty -eq "FullName" }
+            Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
+        }
+        It "Selectionne le premier patch" {
+            Select-PatchFile | Should -Be "file1.patch"
+        }
+    
+    }
 
 }
