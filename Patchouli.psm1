@@ -17,15 +17,11 @@ function Select-File {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
         [hashtable]$Configuration = (New-Configuration)
     )
     process {
-        if ($null -eq $Configuration.Patchs) {
-            Write-Warning "Aucun patch trouvé"
-            return $null
-        }
-        $result = $Configuration.Patchs | 
-            Select-Object -ExpandProperty Name | fzf
+        $result = $Configuration.Patchs | Select-Object -ExpandProperty Name | fzf
         if ($null -ne $result) { return $result.Trim() }
         return $null
     }
