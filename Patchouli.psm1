@@ -23,10 +23,12 @@ function Select-ByIndex {
         [ValidateNotNullOrEmpty()]
         [hashtable]$Configuration = (New-Configuration),
         [Parameter(ValueFromPipeline)]
-        [int]$Index = 0
+        [int]$Index = 0,
+        [switch]$All
     )
     process {
-        if ($Index -lt $Configuration.Patchs.Count) { return $Configuration.Patchs[$Index].FullName }
+        if ($All) { return $Configuration.Patchs.FullName }
+        elseif ($Index -lt $Configuration.Patchs.Count) { return $Configuration.Patchs[$Index].FullName }
         return $null
     }
 }

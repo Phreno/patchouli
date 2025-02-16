@@ -76,7 +76,9 @@ Describe "La selection d'un patch" {
             It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex | Should -Be "file1.patch" }
             It "Retourne le patch par index" { Select-PatchByIndex -Index 0 | Should -Be "file1.patch" }
             It "Retourne le patch par index" { Select-PatchByIndex -Index 1 | Should -Be "file2.patch" }
-
+        }
+        Context "Tous les patchs peuvent etre selectionnes" {
+            It "Retourne tous les patchs" { Select-PatchByIndex -All | Should -Be @("file1.patch", "file2.patch") }
         }
     
     }
