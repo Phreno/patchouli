@@ -15,33 +15,29 @@ function Test-FzfAvailability {
     try { fzf --version | Out-Null; return $true }
     catch { return $false }
 }
-
 function Select-ByIndex {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]
-        [ValidateNotNullOrEmpty()]
-        [hashtable]$Configuration = (New-Configuration),
+        [string[]]$Paths,
         [Parameter(ValueFromPipeline)]
         [int]$Index = 0,
         [switch]$All
     )
     process {
-        if ($All) { return $Configuration.Patchs.FullName }
-        elseif ($Index -lt $Configuration.Patchs.Count) { return $Configuration.Patchs[$Index].FullName }
+        if ($All) { return $Paths }
+        elseif ($Index -lt $Paths.Count) { return $Paths[$Index] }
         return $null
     }
 }
-
 
 function Select-WithFzf { 
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]
-        [ValidateNotNullOrEmpty()]
-        [hashtable]$Configuration = (New-Configuration)
+        [string[]]$Paths
     )    
-    $Configuration.Patchs | Select-Object -ExpandProperty FullName | fzf -m --preview "cat {}"
+    $Paths | fzf -m --preview "cat {}"
 }
 
 function Select-File {
@@ -53,27 +49,26 @@ function Select-File {
         [switch]$ByIndex
     )
     begin {
+        $paths = $Configuration.Patchs | Select-Object -ExpandProperty FullName
         function Show-Index {
             $index = 0
-            $Configuration.Patchs | ForEach-Object { Write-Host "[$index]`t$($_.FullName)"; $index++ }
+            $paths | ForEach-Object { Write-Host "[$index]`t$_"; $index++ }
         }
         function Select-Index {
             $index = Read-Host "Select a patch by index or press 'a' to select all or 'q' to quit"
-            if ($index -eq 'a') { $result = Select-ByIndex -Configuration $Configuration -All }
+            if ($index -eq 'a') { $result = Select-ByIndex -Paths $paths -All }
             elseif ($index -eq 'q') { return $null }
-            else { $result = Select-ByIndex -Configuration $Configuration -Index $index}
+            else { $result = Select-ByIndex -Paths $paths -Index $index }
             return $result
         }
         function Confirm-Fzf { return -not $ByIndex -and (Test-FzfAvailability) }
-
     }
     process {
-        if (Confirm-Fzf) { $result = Select-WithFzf -Configuration $Configuration }
+        if (Confirm-Fzf) { $result = Select-WithFzf -Paths $paths }
         else { Show-Index; $result = Select-Index }
         if ($null -ne $result) { return $result.Trim() }
     }
 }
-
 function New-File {
-    git diff --name-only #| Select-Object -Unique | fzf -m --preview "cat {}"
+    git diff --name-only | fzf -m --preview "cat {}"
 }
