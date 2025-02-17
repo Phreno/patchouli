@@ -27,7 +27,6 @@ function Select-ByIndex {
     process {
         if ($All) { return $Paths }
         elseif ($Index -lt $Paths.Count) { return $Paths[$Index] }
-        return $null
     }
 }
 
