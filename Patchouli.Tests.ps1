@@ -59,10 +59,6 @@ Describe "La selection avec fzf" {
 }
 
 Describe "La selection par index" {
-    BeforeEach {
-        Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" } , [PSCustomObject]@{ FullName = "file2.patch" } ) } -ParameterFilter { $Filter -eq "*.patch" }
-        Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
-    }
     Context "Un id peut etre utilise" {
         It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex -Paths @("file1.patch", "file2.patch") | Should -Be "file1.patch" }
         It "Retourne le premier patch par index" { Select-PatchByIndex -Index 0  -Paths @("file1.patch", "file2.patch") | Should -Be "file1.patch" }
