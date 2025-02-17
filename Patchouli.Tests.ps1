@@ -51,14 +51,6 @@ Describe "La selection avec fzf" {
             Mock -ModuleName Patchouli Select-Object { return "file1.patch" } -ParameterFilter { $ExpandProperty -eq "FullName" }
             Mock -ModuleName Patchouli fzf { return "file1.patch" }
         }
-        It "Genere une nouvelle configuration" -skip {
-            Select-PatchWithFzf
-            Assert-MockCalled -ModuleName Patchouli New-Configuration -Exactly 1
-        }
-        It "Affiche le FullName" -skip {
-            Select-PatchWithFzf
-            Assert-MockCalled -ModuleName Patchouli Select-Object -ParameterFilter { $ExpandProperty -eq "FullName" } -Exactly 1
-        }
         It "Selectionne avec fzf" {
             Select-PatchWithFzf
             Assert-MockCalled -ModuleName Patchouli fzf -Exactly 1
