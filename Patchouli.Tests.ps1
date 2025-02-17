@@ -130,7 +130,12 @@ Describe "La selection de patchs" {
     }
 }
 
-Describe "Creer un patch" -skip {
+Describe "Creer un patch" {
+    It "Fait appel a git diff" {
+        Mock -ModuleName Patchouli git { return "diff" }
+        New-PatchFile
+        Assert-MockCalled -ModuleName Patchouli git -Exactly 1
+    }
 
 }
 

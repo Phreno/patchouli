@@ -52,18 +52,28 @@ function Select-File {
         [hashtable]$Configuration = (New-Configuration),
         [switch]$ByIndex
     )
-    process {
-        if (-not $ByIndex -and (Test-FzfAvailability)) { $result = Select-WithFzf -Configuration $Configuration }
-        else { 
+    begin {
+        function Show-Index {
             $index = 0
             $Configuration.Patchs | ForEach-Object { Write-Host "[$index]`t$($_.FullName)"; $index++ }
+        }
+        function Select-Index {
             $index = Read-Host "Select a patch by index or press 'a' to select all or 'q' to quit"
             if ($index -eq 'a') { $result = Select-ByIndex -Configuration $Configuration -All }
             elseif ($index -eq 'q') { return $null }
             else { $result = Select-ByIndex -Configuration $Configuration -Index $index}
-            if ($null -ne $result) { return $result.Trim() }
-            return $null
+            return $result
         }
+        function Confirm-Fzf { return -not $ByIndex -and (Test-FzfAvailability) }
+
+    }
+    process {
+        if (Confirm-Fzf) { $result = Select-WithFzf -Configuration $Configuration }
+        else { Show-Index; $result = Select-Index }
+        if ($null -ne $result) { return $result.Trim() }
     }
 }
 
+function New-File {
+    git diff --name-only #| Select-Object -Unique | fzf -m --preview "cat {}"
+}
