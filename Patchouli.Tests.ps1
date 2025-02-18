@@ -119,10 +119,15 @@ Describe "La selection de patchs" {
 
 
 Describe "Recuperer les diff" {
+    BeforeAll { Mock -ModuleName Patchouli git { return @("file1", "file2" ) } }
+
     It "Fait appel a git diff" {
-        Mock -ModuleName Patchouli git { return "diff" }
         Get-PatchDiff
         Assert-MockCalled -ModuleName Patchouli git -Exactly 1
+    }
+
+    It "Retourne les fichiers modifies" {
+        Get-PatchDiff | Should -Be @("file1", "file2")
     }
 }
 
