@@ -68,6 +68,12 @@ function Select-File {
         if ($null -ne $result) { return $result.Trim() }
     }
 }
-function New-File {
-    git diff --name-only | fzf -m --preview "cat {}"
+
+
+function Get-Diff {
+    git diff --name-only #| Select-WithFzf | ForEach-Object { git diff $_ }
 }
+
+# function New-File {
+#     git diff --name-only | Select-WithFzf | ForEach-Object { git checkout -- $_ }
+# }

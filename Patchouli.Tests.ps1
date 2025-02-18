@@ -117,7 +117,17 @@ Describe "La selection de patchs" {
     }
 }
 
-Describe "Creer un patch" {
+
+Describe "Recuperer les diff" {
+    It "Fait appel a git diff" {
+        Mock -ModuleName Patchouli git { return "diff" }
+        Get-PatchDiff
+        Assert-MockCalled -ModuleName Patchouli git -Exactly 1
+    }
+}
+
+
+Describe "Creer un patch" -skip {
     Context "Si fzf est disponible" {
         BeforeAll {
             Mock -ModuleName Patchouli Test-FzfAvailability { return $true }
@@ -125,8 +135,8 @@ Describe "Creer un patch" {
         }
         It "Fait appel a git diff" {
             Mock -ModuleName Patchouli git { return "diff" }
-           # New-PatchFile
-           # Assert-MockCalled -ModuleName Patchouli git -Exactly 1
+            New-PatchFile
+            Assert-MockCalled -ModuleName Patchouli git -Exactly 1
         }
     }
 }
