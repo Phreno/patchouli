@@ -119,15 +119,18 @@ Describe "La selection de patchs" {
 
 
 Describe "Recuperer les diff" {
+    Context "Il y a deux fichiers modifies" {
     BeforeAll { Mock -ModuleName Patchouli git { return @("file1", "file2" ) } }
-
     It "Fait appel a git diff" {
         Get-PatchDiff
         Assert-MockCalled -ModuleName Patchouli git -Exactly 1
     }
+    It "Retourne les fichiers modifies" { Get-PatchDiff | Should -Be @("file1", "file2") }
 
-    It "Retourne les fichiers modifies" {
-        Get-PatchDiff | Should -Be @("file1", "file2")
+    }
+    Context "Il n'y a pas de fichier modifie" {
+        BeforeAll { Mock -ModuleName Patchouli git { return @() } }
+        It "Retourne un tableau vide" { Get-PatchDiff | Should -BeNullOrEmpty }
     }
 }
 
