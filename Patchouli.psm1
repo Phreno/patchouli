@@ -91,6 +91,6 @@ function New-Diff {
         [hashtable]$Configuration = (New-Configuration)
     )
     process {
-        $configuration | Get-Diff
+        $configuration | Get-Diff | Select-WithFzf
     }
 }
