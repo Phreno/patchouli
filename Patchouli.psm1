@@ -70,7 +70,7 @@ function Select-File {
 }
 
 
-function Get-Diff {
+function Show-DifferenceSummary {
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)]
@@ -91,6 +91,6 @@ function New-Diff {
         [hashtable]$Configuration = (New-Configuration)
     )
     process {
-        $configuration | Get-Diff | Select-WithFzf
+        $configuration | Show-DifferenceSummary | Select-WithFzf
     }
 }
