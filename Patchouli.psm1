@@ -71,9 +71,26 @@ function Select-File {
 
 
 function Get-Diff {
-    git diff --name-only #| Select-WithFzf | ForEach-Object { git diff $_ }
+    [CmdletBinding()]
+    Param(
+        [Parameter(ValueFromPipeline)]
+        [hashtable]$Configuration = (New-Configuration)
+    )
+    begin {
+        $currentPath = Get-Location
+        Set-Location $Configuration.Repository.FullName
+    }
+    process { git diff --name-only }
+    end { Set-Location $currentPath }
 }
 
-# function New-File {
-#     git diff --name-only | Select-WithFzf | ForEach-Object { git checkout -- $_ }
-# }
+function New-Diff {
+    [CmdletBinding()]
+    Param(
+        [Parameter(ValueFromPipeline)]
+        [hashtable]$Configuration = (New-Configuration)
+    )
+    process {
+        $configuration | Get-Diff
+    }
+}

@@ -121,12 +121,11 @@ Describe "La selection de patchs" {
 Describe "Recuperer les diff" {
     Context "Il y a deux fichiers modifies" {
     BeforeAll { Mock -ModuleName Patchouli git { return @("file1", "file2" ) } }
-    It "Fait appel a git diff" {
-        Get-PatchDiff
-        Assert-MockCalled -ModuleName Patchouli git -Exactly 1
-    }
-    It "Retourne les fichiers modifies" { Get-PatchDiff | Should -Be @("file1", "file2") }
-
+        It "Fait appel a git diff" {
+            Get-PatchDiff
+            Assert-MockCalled -ModuleName Patchouli git -Exactly 1
+        }
+        It "Retourne les fichiers modifies" { Get-PatchDiff | Should -Be @("file1", "file2") } 
     }
     Context "Il n'y a pas de fichier modifie" {
         BeforeAll { Mock -ModuleName Patchouli git { return @() } }
@@ -135,16 +134,15 @@ Describe "Recuperer les diff" {
 }
 
 
-Describe "Creer un patch" -skip {
+Describe "Creer un patch" {
     Context "Si fzf est disponible" {
-        BeforeAll {
-            Mock -ModuleName Patchouli Test-FzfAvailability { return $true }
-            Mock -ModuleName Patchouli Select-WithFzf { return "file1.patch" }
+        BeforeAll { 
+            Mock -ModuleName Patchouli New-Configuration { return @{ Patchs = @([PSCustomObject]@{ FullName = "file1.patch" }) } }
+            Mock -ModuleName Patchouli Get-Diff { return @("file1.patch") } 
         }
         It "Fait appel a git diff" {
-            Mock -ModuleName Patchouli git { return "diff" }
-            New-PatchFile
-            Assert-MockCalled -ModuleName Patchouli git -Exactly 1
+            New-PatchDiff
+            Assert-MockCalled -ModuleName Patchouli Get-Diff -Exactly 1
         }
     }
 }
