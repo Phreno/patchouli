@@ -144,6 +144,7 @@ Describe "Creer un patch" {
             New-PatchDiff
             Assert-MockCalled -ModuleName Patchouli Get-Diff -Exactly 1
         }
+        It "Retourne le patch cree" { New-PatchDiff | Should -Be "file1.patch" }
     }
 }
 
