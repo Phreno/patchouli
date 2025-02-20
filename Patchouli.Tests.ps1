@@ -117,7 +117,6 @@ Describe "La selection de patchs" {
     }
 }
 
-
 Describe "Recuperer les diff" {
     Context "Il y a deux fichiers modifies" {
     BeforeAll { Mock -ModuleName Patchouli git { return @("file1", "file2" ) } }
@@ -140,21 +139,30 @@ Describe "Creer un patch" {
             Mock -ModuleName Patchouli New-Configuration { return @{ Patchs = @([PSCustomObject]@{ FullName = "file1.patch" }) } }
             Mock -ModuleName Patchouli Show-DifferenceSummary { return @("file1.patch") } 
             Mock -ModuleName Patchouli Select-WithFzf { return "file1.patch" }
+            Mock -ModuleName Patchouli Test-Path { return $true } -ParameterFilter { $Path -eq "file1.patch" }
+            Mock -ModuleName Patchouli Out-Difference
         }
-        It "Fait appel a git diff" {
-            New-PatchDiff
-            Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1
-        }
-        It "Retourne les fichiers modifies" { New-PatchDiff | Should -Be "file1.patch" }
         Context "Lorsque Fzf est disponible" {
             BeforeAll { 
                 Mock -ModuleName Patchouli Test-FzfAvailability { return $true } 
                 Mock -ModuleName Patchouli Select-WithFzf { return "file1.patch" }
             }
+            It "Fait appel a git diff" {
+                New-PatchDiff
+                Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1
+            }
             It "Selectionne le patch" {
                 New-PatchDiff
                 Assert-MockCalled -ModuleName Patchouli Select-WithFzf -Exactly 1
             }
+            It "Ecrit le patch" {
+                New-PatchDiff
+                Assert-MockCalled -ModuleName Patchouli Out-Difference -Exactly 1
+            }
+        }
+        Context "Lorsque Fzf n'est pas disponible" {
+            BeforeAll { Mock -ModuleName Patchouli Test-FzfAvailability { return $false } }
+            
         }
     }
 }

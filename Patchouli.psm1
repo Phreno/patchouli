@@ -34,9 +34,10 @@ function Select-WithFzf {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]
-        [string[]]$Paths
+        [string[]]$Paths,
+        [string]$preview = "cat"
     )    
-    $Paths | fzf -m --preview "cat {}"
+    $Paths | fzf -m --preview "$preview {}"
 }
 
 function Select-File {
@@ -84,6 +85,17 @@ function Show-DifferenceSummary {
     end { Set-Location $currentPath }
 }
 
+
+function Out-Difference {
+    [CmdletBinding()]
+    Param(
+        [Parameter(ValueFromPipeline, Mandatory)]
+        [ValidateScript({ Test-Path $_ -PathType Leaf })]
+        [string]$file
+    )
+    process { git diff -p $file | Out-File "$file.patch" }
+}
+
 function New-Diff {
     [CmdletBinding()]
     Param(
@@ -91,6 +103,6 @@ function New-Diff {
         [hashtable]$Configuration = (New-Configuration)
     )
     process {
-        $configuration | Show-DifferenceSummary | Select-WithFzf
+        $configuration | Show-DifferenceSummary | Select-WithFzf -preview "git diff"| Out-Difference 
     }
 }
