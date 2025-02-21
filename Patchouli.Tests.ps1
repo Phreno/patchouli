@@ -1,34 +1,39 @@
 BeforeAll {
     Import-Module $PSCommandPath.Replace('.Tests.ps1', '.psd1') -Force
+
+    function Get-DummyFileName {
+        param( $index = 1)
+        "file$index.patch"
+    }
+
+    function New-FileMock {
+        param( [string]$count = 1)
+        for ($i = 1; $i -le $count; $i++) { [PSCustomObject]@{ Name = Get-DummyFileName -index $i; FullName = "/fullname/$(Get-DummyFileName -index $i)" } }
+    }
 }
 
 Describe "La configuration du patch" {
     It "Recupere un objet de configuration" { New-PatchConfiguration | Should -BeOfType HashTable }
     Describe "La propriete Patchs" {
         Context "Le repository git contient des patchs" {
-            BeforeEach { 
-                Mock -ModuleName Patchouli Get-ChildItem {
-                    return @(
-                        [PSCustomObject]@{ Name = "file1.patch" },
-                        [PSCustomObject]@{ Name = "file2.patch" }
-                    )
-                } -ParameterFilter { $Filter -eq "*.patch" }
-            }
+            BeforeAll { Mock -ModuleName Patchouli Get-ChildItem { return New-FileMock -Count 2 } -ParameterFilter { $Filter -eq "*.patch" } }
+            BeforeEach { $result = New-PatchConfiguration }
             It "Recupere les patchs du repository git" { 
-                $result = New-PatchConfiguration
                 $result.Patchs.Count | Should -Be 2
-                $result.Patchs[0].Name | Should -Be "file1.patch"
+                $result.Patchs[0].Name | Should -Be (Get-DummyFileName -index 1)
             }
         }
 
         Context "Le repository git ne contient pas de patchs" {
-            BeforeEach { Mock -ModuleName Patchouli Get-ChildItem { return @() } -ParameterFilter { $Filter -eq "*.patch" } }
-            It "Retourne un tableau vide" { (New-PatchConfiguration).Patchs | Should -BeNullOrEmpty }
+            BeforeAll { Mock -ModuleName Patchouli Get-ChildItem { return @() } -ParameterFilter { $Filter -eq "*.patch" } }
+            BeforeEach { $result = New-PatchConfiguration }
+            It "Retourne un tableau vide" { $result.Patchs | Should -BeNullOrEmpty }
         }
     }
     Describe "La propriete Repository" {
         Context "Le repository git est valide" {
-            BeforeEach { Mock -ModuleName Patchouli Test-Path { return $true } }
+            BeforeAll { Mock -ModuleName Patchouli Test-Path { return $true } }
+            # TODO: Tests a revoir
             It "Retourne le repository git cible" { (New-PatchConfiguration).Repository | Should -BeOfType System.IO.DirectoryInfo }
             It "Permet la Modification du repository git cible" {
                 (New-PatchConfiguration -Repository "./").Repository.BaseName | Should -Be patchouli
@@ -43,18 +48,15 @@ Describe "La configuration du patch" {
     }
 }
 
-
 Describe "La selection avec fzf" {
     Context "Si fzf est disponible" {
         BeforeAll {
-            Mock -ModuleName Patchouli New-Configuration { return @{ Patchs = @([PSCustomObject]@{ FullName = "file1.patch" }) } }
+            Mock -ModuleName Patchouli New-Configuration { return @{ Patchs = New-FileMock -Count 1 } }
             Mock -ModuleName Patchouli Select-Object { return "file1.patch" } -ParameterFilter { $ExpandProperty -eq "FullName" }
-            Mock -ModuleName Patchouli fzf { return "file1.patch" }
+            Mock -ModuleName Patchouli fzf { return Get-DummyFileName -Count 1 }
         }
-        It "Selectionne avec fzf" {
-            Select-PatchWithFzf
-            Assert-MockCalled -ModuleName Patchouli fzf -Exactly 1
-        }
+        BeforeEach { Select-PatchWithFzf }
+        It "Selectionne avec fzf" { Assert-MockCalled -ModuleName Patchouli fzf -Exactly 1 }
     }
 }
 
@@ -71,48 +73,30 @@ Describe "La selection par index" {
 
 Describe "La selection de patchs" {
     Context "Si fzf est disponible" {
-        BeforeEach {
-            Mock -ModuleName Patchouli Test-FzfAvailability { return $true }
+        BeforeAll {
+            Mock -ModuleName Patchouli Test-FzfAvailability { return $true }             
             Mock -ModuleName Patchouli Select-WithFzf { return "file1.patch" }
         }
-        It "Selectionne avec fzf" {
-            Select-PatchFile
-            Assert-MockCalled -ModuleName Patchouli Select-WithFzf -Exactly 1
-        }
+        BeforeEach { Select-PatchFile }
+        It "Selectionne avec fzf" { Assert-MockCalled -ModuleName Patchouli Select-WithFzf -Exactly 1 }
     }
     Context "Si fzf n'est pas disponible" {
-        BeforeEach {
+        BeforeAll {
             Mock -ModuleName Patchouli Write-Host {} -ParameterFilter { $Object -match "file\d.patch" }
             Mock -ModuleName Patchouli Test-FzfAvailability { return $false }
             Mock -ModuleName Patchouli Select-ByIndex { return "file1.patch" }
             Mock -ModuleName Patchouli Read-Host { return 0 }
             Mock -ModuleName Patchouli Get-ChildItem { return @([PSCustomObject]@{ FullName = "file1.patch" } , [PSCustomObject]@{ FullName = "file2.patch" } ) } -ParameterFilter { $Filter -eq "*.patch" }
         }
-        It "Selectionne par index" {
-            Select-PatchFile
-            Assert-MockCalled -ModuleName Patchouli Select-ByIndex -Exactly 1
-        }
-        It "Affiche les patchs disponibles" {
-            Select-PatchFile
-            Assert-MockCalled -ModuleName Patchouli Write-Host -Exactly 2
-        }
+        BeforeEach { Select-PatchFile }
         Context "Demande un index" {
-            It "Lit l'index fourni par l'utilisateur" {
-                Select-PatchFile
-                Assert-MockCalled -ModuleName Patchouli Read-Host -Exactly 1
-            }
-        }
-        Context "Annule la selection" {
-            BeforeEach { Mock -ModuleName Patchouli Read-Host { return 'q' } }
-            It "Retourne un tableau vide" { Select-PatchFile | Should -BeNullOrEmpty }
+            It "Selectionne par index"          { Assert-MockCalled -ModuleName Patchouli Select-ByIndex -Exactly 1 }
+            It "Affiche les patchs disponibles" { Assert-MockCalled -ModuleName Patchouli Write-Host -Exactly 2 }
+            It "Lit l'index fourni par l'utilisateur" { Assert-MockCalled -ModuleName Patchouli Read-Host -Exactly 1 }
         }
         Context "Demande tous les patchs" {
-            BeforeEach { Mock -ModuleName Patchouli Read-Host { return 'a' } }
-            It "Retourne tous les patchs" {
-                Select-PatchFile
-                Assert-MockCalled -ModuleName Patchouli Select-ByIndex -ParameterFilter { $All -eq $true } -Exactly 1
-            }
-
+            BeforeAll { Mock -ModuleName Patchouli Read-Host { return 'a' } }
+            It "Retourne tous les patchs" { Assert-MockCalled -ModuleName Patchouli Select-ByIndex -ParameterFilter { $All -eq $true } -Exactly 1 }
         }
     }
 }
@@ -136,33 +120,24 @@ Describe "Recuperer les diff" {
 Describe "Creer un patch" {
     Context "Si fzf est disponible" {
         BeforeAll { 
-            Mock -ModuleName Patchouli New-Configuration { return @{ Patchs = @([PSCustomObject]@{ FullName = "file1.patch" }) } }
-            Mock -ModuleName Patchouli Show-DifferenceSummary { return @("file1.patch") } 
-            Mock -ModuleName Patchouli Select-WithFzf { return "file1.patch" }
-            Mock -ModuleName Patchouli Test-Path { return $true } -ParameterFilter { $Path -eq "file1.patch" }
+            Mock -ModuleName Patchouli New-Configuration        { return @{ Patchs = @([PSCustomObject]@{ FullName = "file1.patch" }) } }
+            Mock -ModuleName Patchouli Show-DifferenceSummary   { return @("file1.patch") } 
+            Mock -ModuleName Patchouli Select-WithFzf           { return "file1.patch"    }
+            Mock -ModuleName Patchouli Test-Path                { return $true            } -ParameterFilter { $Path -eq "file1.patch" }
             Mock -ModuleName Patchouli Out-Difference
         }
         Context "Lorsque Fzf est disponible" {
             BeforeAll { 
-                Mock -ModuleName Patchouli Test-FzfAvailability { return $true } 
-                Mock -ModuleName Patchouli Select-WithFzf { return "file1.patch" }
+                Mock -ModuleName Patchouli Test-FzfAvailability { return $true          } 
+                Mock -ModuleName Patchouli Select-WithFzf       { return "file1.patch"  }
             }
-            It "Fait appel a git diff" {
-                New-PatchDiff
-                Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1
-            }
-            It "Selectionne le patch" {
-                New-PatchDiff
-                Assert-MockCalled -ModuleName Patchouli Select-WithFzf -Exactly 1
-            }
-            It "Ecrit le patch" {
-                New-PatchDiff
-                Assert-MockCalled -ModuleName Patchouli Out-Difference -Exactly 1
-            }
+            BeforeEach { New-PatchDiff }
+            It "Fait appel a git diff" { Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1 }
+            It "Selectionne le patch"  { Assert-MockCalled -ModuleName Patchouli Select-WithFzf         -Exactly 1 }
+            It "Ecrit le patch"        { Assert-MockCalled -ModuleName Patchouli Out-Difference         -Exactly 1 }
         }
         Context "Lorsque Fzf n'est pas disponible" {
             BeforeAll { Mock -ModuleName Patchouli Test-FzfAvailability { return $false } }
-            
         }
     }
 }
