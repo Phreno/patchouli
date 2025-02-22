@@ -12,7 +12,7 @@ function Select-Index {
         [int]$Index = 0,
         [switch]$All
     )
-    process {
+    end {
         if ($All) { return $Items }
         elseif ($Index -lt $Items.Count) { return $Items[$Index] }
     }
@@ -26,7 +26,7 @@ function Read-SelectionByIndex {
     begin {
         function Show-Index { $index = 0; $Items | ForEach-Object { Write-Host "[$index]`t$_"; $index++ } }
     }
-    process {
+    end {
         $index = Read-Host "Select a patch by index or press 'a' to select all or 'q' to quit"
         if ($index -eq 'a') { $result = Select-Index -Items $Items -All }
         elseif ($index -eq 'q') { return $null }
@@ -39,10 +39,14 @@ function Read-Selection {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]
-        [string[]]$Items,
+        $Items,
         [string]$preview = "cat"
-    )    
-    $Items | fzf -m --preview "$preview {}"
+    )
+    begin { 
+        Write-Debug "Read-Selection: Items count: $($Items.Count)" 
+        Write-Debug "Read-Selection: Items: $($Items | ConvertTo-Json)" 
+    }
+    end { $Items | fzf -m --preview "$preview {}" }    
 }
 
 function Select-Item {
@@ -54,11 +58,16 @@ function Select-Item {
         [switch]$ByIndex
     )
     begin {
-        function Confirm-Fzf { -not $ByIndex -and (Test-Availability) }
-    }
-    process {
-        if (Confirm-Fzf) { $result = Read-Selection -Items $Items }
+        Write-Debug "Select-Item: Items count: $($Items.Count)"
+        function Confirm-Fzf { 
+            $result = -not $ByIndex -and (Test-Availability) 
+            Write-Debug "Confirm-Fzf? $result"
+            $result
+        }
+        if (Confirm-Fzf) { $result = Read-Selection -Items:($Items) }
         else { $result = Read-SelectionByIndex -Items $Items }
         if ($null -ne $result) { $result.Trim() }
     }
+    #end {
+    #}
 }
