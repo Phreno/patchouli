@@ -2,13 +2,25 @@ BeforeAll {
     Import-Module $PSCommandPath.Replace('.Tests.ps1', '.psd1') -Force
 
     function Get-DummyFileName {
-        param( $index = 1)
-        "file$index.patch"
+        param($index = 0, [switch]$fullName)
+        if ($fullName) { "/fullname/file$index.patch" }
+        else { "file$index.patch" }
+    }
+
+    function New-FileNameMock {
+        param(
+            $count = 1,
+            [switch] $FullName
+        )
+        for ($i = 0; $i -lt $count; $i++) {
+            if ($FullName) { "/fullname/$(Get-DummyFileName -index $i)" }
+            else { Get-DummyFileName -index $i } 
+        }
     }
 
     function New-FileMock {
         param($count = 1)
-        for ($i = 1; $i -le $count; $i++) { [PSCustomObject]@{ Name = Get-DummyFileName -index $i; FullName = "/fullname/$(Get-DummyFileName -index $i)" } }
+        for ($i = 0; $i -lt $count; $i++) { [PSCustomObject]@{ Name = Get-DummyFileName -index $i; FullName = Get-DummyFileName -index $i -FullName } }
     }
 
     function New-ConfigurationMock {
@@ -26,7 +38,7 @@ Describe "La configuration du patch" {
             BeforeEach { $result = New-PatchConfiguration }
             It "Recupere les patchs du repository git" { 
                 $result.Patchs.Count | Should -Be 2
-                $result.Patchs[0].Name | Should -Be (Get-DummyFileName -index 1)
+                $result.Patchs[0].Name | Should -Be "file0.patch"
             }
         }
 
@@ -67,12 +79,12 @@ Describe "La selection avec fzf" {
 
 Describe "La selection par index" {
     Context "Un id peut etre utilise" {
-        It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex -Paths @("file1.patch", "file2.patch") | Should -Be "file1.patch"           }
-        It "Retourne le premier patch par index"                          { Select-PatchByIndex -Paths @("file1.patch", "file2.patch") -Index 0  | Should -Be "file1.patch" }
-        It "Retourne le second patch par index"                           { Select-PatchByIndex -Paths @("file1.patch", "file2.patch") -Index 1  | Should -Be "file2.patch" }
+        It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex -Paths (New-FileNameMock -Count 2)           | Should -Be "file0.patch" }
+        It "Retourne le premier patch par index"                          { Select-PatchByIndex -Paths (New-FileNameMock -Count 2) -Index 0  | Should -Be "file0.patch" }
+        It "Retourne le second patch par index"                           { Select-PatchByIndex -Paths (New-FileNameMock -Count 2) -Index 1  | Should -Be "file1.patch" }
     }
     Context "Tous les patchs peuvent etre selectionnes" {
-        It "Retourne tous les patchs" { Select-PatchByIndex -All -Paths @("file1.patch", "file2.patch") | Should -Be @("file1.patch", "file2.patch") }
+        It "Retourne tous les patchs" { Select-PatchByIndex -All -Paths (New-FileNameMock -Count 2) | Should -Be @("file0.patch", "file1.patch") }
     }
 }
 
@@ -87,17 +99,17 @@ Describe "La selection de patchs" {
     }
     Context "Si fzf n'est pas disponible" {
         BeforeAll {
-            Mock -ModuleName Patchouli Write-Host           {                      } -ParameterFilter { $Object -match "file\d.patch" }
-            Mock -ModuleName Patchouli Test-FzfAvailability { return $false        }
-            Mock -ModuleName Patchouli Select-ByIndex       { return "file1.patch" }
-            Mock -ModuleName Patchouli Read-Host            { return 0             }
-            Mock -ModuleName Patchouli Get-ChildItem { New-FileMock -Count 2 } -ParameterFilter { $Filter -eq "*.patch" }
+            Mock -ModuleName Patchouli Write-Host           {                       } -ParameterFilter { $Object -match "file\d.patch" }
+            Mock -ModuleName Patchouli Test-FzfAvailability { return $false         }
+            Mock -ModuleName Patchouli Select-ByIndex       { return "file1.patch"  }
+            Mock -ModuleName Patchouli Read-Host            { return 0              }
+            Mock -ModuleName Patchouli Get-ChildItem        { New-FileMock -Count 2 } -ParameterFilter { $Filter -eq "*.patch" }
         }
         BeforeEach { Select-PatchFile }
         Context "Demande un index" {
             It "Selectionne par index"                { Assert-MockCalled -ModuleName Patchouli Select-ByIndex -Exactly 1 }
-            It "Affiche les patchs disponibles"       { Assert-MockCalled -ModuleName Patchouli Write-Host -Exactly 2     }
-            It "Lit l'index fourni par l'utilisateur" { Assert-MockCalled -ModuleName Patchouli Read-Host -Exactly 1      }
+            It "Affiche les patchs disponibles"       { Assert-MockCalled -ModuleName Patchouli Write-Host     -Exactly 2 }
+            It "Lit l'index fourni par l'utilisateur" { Assert-MockCalled -ModuleName Patchouli Read-Host      -Exactly 1 }
         }
         Context "Demande tous les patchs" {
             BeforeAll { Mock -ModuleName Patchouli Read-Host { return 'a' } }
@@ -108,12 +120,12 @@ Describe "La selection de patchs" {
 
 Describe "Recuperer les diff" {
     Context "Il y a deux fichiers modifies" {
-    BeforeAll { Mock -ModuleName Patchouli git { return @("file1", "file2" ) } }
+    BeforeAll { Mock -ModuleName Patchouli git { New-FileNameMock -Count 2 } }
         It "Fait appel a git diff" {
             Show-PatchDifferenceSummary
             Assert-MockCalled -ModuleName Patchouli git -Exactly 1
         }
-        It "Retourne les fichiers modifies" { Show-PatchDifferenceSummary | Should -Be @("file1", "file2") } 
+        It "Retourne les fichiers modifies" { Show-PatchDifferenceSummary | Should -Be @("file0.patch", "file1.patch") } 
     }
     Context "Il n'y a pas de fichier modifie" {
         BeforeAll { Mock -ModuleName Patchouli git { return @() } }
@@ -124,10 +136,10 @@ Describe "Recuperer les diff" {
 
 Describe "Creer un patch" {
     BeforeAll { 
-        Mock -ModuleName Patchouli New-Configuration        { return @{ Patchs = @([PSCustomObject]@{ FullName = "file1.patch" }) } }
-        Mock -ModuleName Patchouli Show-DifferenceSummary   { return @("file1.patch") } 
-        Mock -ModuleName Patchouli Select-File              { return "file1.patch" }
-        Mock -ModuleName Patchouli Test-Path                { return $true            } -ParameterFilter { $Path -eq "file1.patch" }
+        Mock -ModuleName Patchouli New-Configuration        { New-ConfigurationMock -Count 2 }
+        Mock -ModuleName Patchouli Show-DifferenceSummary   { New-FileMock          -Count 2 } 
+        Mock -ModuleName Patchouli Select-File              { Get-DummyFileName     -Index 1 }
+        Mock -ModuleName Patchouli Test-Path                {  $true                         } -ParameterFilter { $Path -eq "file1.patch" }
         Mock -ModuleName Patchouli Out-Difference
     }
     BeforeEach { New-PatchDiff }
