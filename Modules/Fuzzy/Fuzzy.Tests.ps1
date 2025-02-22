@@ -27,16 +27,24 @@ Describe "Fuzzy" {
     }
     Describe "Lit la selection de l'utilisateur par index" {
         Context "Lorsque l'utilisateur selectionne un patch" {
-            BeforeAll { Mock -ModuleName Fuzzy Read-Host { return 0 } }
+            BeforeAll { Mock -ModuleName Fuzzy Read-Host { 0 } }
             It "Retourne le patch selectionne" { Read-FuzzySelectionByIndex -Items (New-ListItemMock -Count 2) | Should -Be "file0" }
         }
         Context "Lorsque l'utilisateur selectionne tous les patchs" {
-            BeforeAll { Mock -ModuleName Fuzzy Read-Host { return 'a' } }
+            BeforeAll { Mock -ModuleName Fuzzy Read-Host { 'a' } }
             It "Retourne tous les patchs" { Read-FuzzySelectionByIndex -Items (New-ListItemMock -Count 2) | Should -Be @("file0", "file1") }
         }
         Context "Lorsque l'utilisateur quitte" {
-            BeforeAll { Mock -ModuleName Fuzzy Read-Host { return 'q' } }
+            BeforeAll { Mock -ModuleName Fuzzy Read-Host { 'q' } }
             It "Retourne nul" { Read-FuzzySelectionByIndex -Items (New-ListItemMock -Count 2) | Should -Be $null }
+        }
+    }
+    Describe "Lit la selection de l'utilisateur" {
+        Context "Lorsque l'utilisateur selectionne un patch" {
+            BeforeAll { Mock -ModuleName Fuzzy fzf { return "file1" } }
+            BeforeEach { $result = Read-FuzzySelection -Items (New-ListItemMock -Count 1) }
+            It "Retourne le patch selectionne" { $result | Should -Be "file1" }
+            It "Retourne le patch selectionne" { Assert-MockCalled -ModuleName Fuzzy fzf -Exactly 1 }
         }
     }
 
