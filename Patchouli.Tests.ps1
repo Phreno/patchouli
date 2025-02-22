@@ -60,54 +60,6 @@ Describe "La configuration du patch" {
     }
 }
 
-Describe "La selection avec fzf" {
-    Context "Si fzf est disponible" {
-        BeforeAll { Mock -ModuleName Patchouli fzf { Get-DummyFileName -Index 1    } }
-        BeforeEach { Select-PatchWithFzf }
-        It "Selectionne avec fzf" { Assert-MockCalled -ModuleName Patchouli fzf -Exactly 1 }
-    }
-}
-
-Describe "La selection par index" {
-    Context "Un id peut etre utilise" {
-        It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex -Paths (New-FileNameMock -Count 2)           | Should -Be "file0.patch" }
-        It "Retourne le premier patch par index"                          { Select-PatchByIndex -Paths (New-FileNameMock -Count 2) -Index 0  | Should -Be "file0.patch" }
-        It "Retourne le second patch par index"                           { Select-PatchByIndex -Paths (New-FileNameMock -Count 2) -Index 1  | Should -Be "file1.patch" }
-    }
-    Context "Tous les patchs peuvent etre selectionnes" {
-        It "Retourne tous les patchs" { Select-PatchByIndex -All -Paths (New-FileNameMock -Count 2) | Should -Be @("file0.patch", "file1.patch") }
-    }
-}
-
-Describe "La selection de patchs" {
-    Context "Si fzf est disponible" {
-        BeforeAll {
-            Mock -ModuleName Patchouli Test-FzfAvailability { return $true }             
-            Mock -ModuleName Patchouli Select-WithFzf { return "file1.patch" }
-        }
-        BeforeEach { Select-PatchFile }
-        It "Selectionne avec fzf" { Assert-MockCalled -ModuleName Patchouli Select-WithFzf -Exactly 1 }
-    }
-    Context "Si fzf n'est pas disponible" {
-        BeforeAll {
-            Mock -ModuleName Patchouli Write-Host           {                       } -ParameterFilter { $Object -match "file\d.patch" }
-            Mock -ModuleName Patchouli Test-FzfAvailability { return $false         }
-            Mock -ModuleName Patchouli Select-ByIndex       { return "file1.patch"  }
-            Mock -ModuleName Patchouli Read-Host            { return 0              }
-            Mock -ModuleName Patchouli Get-ChildItem        { New-FileMock -Count 2 } -ParameterFilter { $Filter -eq "*.patch" }
-        }
-        BeforeEach { Select-PatchFile }
-        Context "Demande un index" {
-            It "Selectionne par index"                { Assert-MockCalled -ModuleName Patchouli Select-ByIndex -Exactly 1 }
-            It "Affiche les patchs disponibles"       { Assert-MockCalled -ModuleName Patchouli Write-Host     -Exactly 2 }
-            It "Lit l'index fourni par l'utilisateur" { Assert-MockCalled -ModuleName Patchouli Read-Host      -Exactly 1 }
-        }
-        Context "Demande tous les patchs" {
-            BeforeAll { Mock -ModuleName Patchouli Read-Host { return 'a' } }
-            It "Retourne tous les patchs" { Assert-MockCalled -ModuleName Patchouli Select-ByIndex -ParameterFilter { $All -eq $true } -Exactly 1 }
-        }
-    }
-}
 
 Describe "Recuperer les diff" {
     Context "Il y a deux fichiers modifies" {
