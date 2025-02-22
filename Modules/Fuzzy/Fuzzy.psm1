@@ -45,21 +45,20 @@ function Read-Selection {
     $Items | fzf -m --preview "$preview {}"
 }
 
-function Select-File {
+function Select-Item {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
-        [hashtable]$Configuration = (New-Configuration),
+        [string[]]$Items = (Get-ChildItem -File).FullName,
         [switch]$ByIndex
     )
     begin {
-        $paths = $Configuration.Patchs | Select-Object -ExpandProperty FullName
-        function Confirm-Fzf { return -not $ByIndex -and (Test-FzfAvailability) }
+        function Confirm-Fzf { -not $ByIndex -and (Test-Availability) }
     }
     process {
-        if (Confirm-Fzf) { $result = Select-WithFzf -Paths $paths }
-        else { $result = Select-WithIndex }
-        if ($null -ne $result) { return $result.Trim() }
+        if (Confirm-Fzf) { $result = Read-Selection -Items $Items }
+        else { $result = Read-SelectionByIndex -Items $Items }
+        if ($null -ne $result) { $result.Trim() }
     }
 }

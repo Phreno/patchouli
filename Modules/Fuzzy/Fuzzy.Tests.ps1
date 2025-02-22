@@ -48,54 +48,21 @@ Describe "Fuzzy" {
         }
     }
 
+    Describe "Selectionne un item" {
+            BeforeEach { Select-FuzzyItem }
+        Context "Si fzf est disponible" {
+            BeforeAll { 
+                Mock -ModuleName Fuzzy Test-Availability { return $true }
+                Mock -ModuleName Fuzzy Read-Selection { return "file1" }
+            }
+            It "Selectionne avec fzf" { Assert-MockCalled -ModuleName Fuzzy Read-Selection -Exactly 1 }
+        }
+        Context "Si fzf n'est pas disponible" {
+            BeforeAll {
+                Mock -ModuleName Fuzzy Test-Availability { return $false }
+                Mock -ModuleName Fuzzy Read-SelectionByIndex { return "file1" } 
+            }
+            It "Selectionne par index" { Assert-MockCalled -ModuleName Fuzzy Read-SelectionByIndex -Exactly 1 }
+        }
+    }
 }
-
-
-
-
-
-# Describe "La selection avec fzf" {
-#     Context "Si fzf est disponible" {
-#         BeforeAll { Mock -ModuleName Fuzzy fzf { Get-DummyFileName -Index 1    } }
-#         BeforeEach { Select-FuzzyWithFzf }
-#         It "Selectionne avec fzf" { Assert-MockCalled -ModuleName Fuzzy fzf -Exactly 1 }
-#     }
-# }
-
-#Describe "La selection par index" {
-#    Context "Un id peut etre utilise" {
-#        It "Retourne le patch par defaut si aucun index n'est disponible" { Select-PatchByIndex -Paths (New-FileNameMock -Count 2)           | Should -Be "file0.patch" }
-#        It "Retourne le premier patch par index"                          { Select-PatchByIndex -Paths (New-FileNameMock -Count 2) -Index 0  | Should -Be "file0.patch" }
-#        It "Retourne le second patch par index"                           { Select-PatchByIndex -Paths (New-FileNameMock -Count 2) -Index 1  | Should -Be "file1.patch" }
-#    }
-#    Context "Tous les patchs peuvent etre selectionnes" {
-#        It "Retourne tous les patchs" { Select-PatchByIndex -All -Paths (New-FileNameMock -Count 2) | Should -Be @("file0.patch", "file1.patch") }
-#    }
-#}
-
-#Describe "La selection de patchs" {
-#    Context "Si fzf est disponible" {
-#        BeforeAll {
-#            Mock -ModuleName Fuzzy Test-FzfAvailability { return $true }
-#            Mock -ModuleName Fuzzy Select-WithFzf { return "file1.patch" }
-#        }
-#        BeforeEach { Select-PatchFile }
-#        It "Selectionne avec fzf" { Assert-MockCalled -ModuleName Fuzzy Select-WithFzf -Exactly 1 }
-#    }
-#    Context "Si fzf n'est pas disponible" {
-#        BeforeAll {
-#            Mock -ModuleName Fuzzy Test-FzfAvailability { $false         }
-#            Mock -ModuleName Fuzzy Select-WithIndex     { "file1.patch"  }
-#        }
-#        BeforeEach { Select-PatchFile }
-#        It "Selectionne par index"                { Assert-MockCalled -ModuleName Fuzzy Select-WithIndex -Exactly 1 }
-#        }
-#        # It "Affiche les patchs disponibles"       { Assert-MockCalled -ModuleName Fuzzy Write-Host     -Exactly 2 }
-#        # It "Lit l'index fourni par l'utilisateur" { Assert-MockCalled -ModuleName Fuzzy Read-Host      -Exactly 1 }
-#        #Context "Demande tous les patchs" {
-#        #    BeforeAll { Mock -ModuleName Fuzzy Read-Host { return 'a' } }
-#        #    It "Retourne tous les patchs" { Assert-MockCalled -ModuleName Fuzzy Select-ByIndex -ParameterFilter { $All -eq $true } -Exactly 1 }
-#        #}
-#    }
-#}
-#}
