@@ -57,17 +57,13 @@ function Select-Item {
         [string[]]$Items = (Get-ChildItem -File).FullName,
         [switch]$ByIndex
     )
-    begin {
-        Write-Debug "Select-Item: Items count: $($Items.Count)"
-        function Confirm-Fzf { 
-            $result = -not $ByIndex -and (Test-Availability) 
-            Write-Debug "Confirm-Fzf? $result"
-            $result
-        }
-        if (Confirm-Fzf) { $result = Read-Selection -Items:($Items) }
-        else { $result = Read-SelectionByIndex -Items $Items }
-        if ($null -ne $result) { $result.Trim() }
+    Write-Debug "Select-Item: Items count: $($Items.Count)"
+    function Confirm-Fzf { 
+        $result = -not $ByIndex -and (Test-Availability) 
+        Write-Debug "Confirm-Fzf? $result"
+        $result
     }
-    #end {
-    #}
+    if (Confirm-Fzf) { $result = Read-Selection -Items:($Items) }
+    else { $result = Read-SelectionByIndex -Items $Items }
+    if ($null -ne $result) { $result.Trim() }
 }
