@@ -28,21 +28,21 @@ function Read-SelectionByIndex {
     }
     process {
         $index = Read-Host "Select a patch by index or press 'a' to select all or 'q' to quit"
-        if ($index -eq 'a') { $result = Select-Index -Itemes $Items -All }
+        if ($index -eq 'a') { $result = Select-Index -Items $Items -All }
         elseif ($index -eq 'q') { return $null }
         else { $result = Select-Index -Items $Items -Index $index }
         return $result
     }
 }
 
-function Select-WithFzf { 
+function Read-Selection { 
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]
-        [string[]]$Paths,
+        [string[]]$Items,
         [string]$preview = "cat"
     )    
-    $Paths | fzf -m --preview "$preview {}"
+    $Items | fzf -m --preview "$preview {}"
 }
 
 function Select-File {
