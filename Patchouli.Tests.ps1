@@ -39,7 +39,6 @@ Describe "La configuration du patch" {
             It "Recupere les patchs du repository git" { $result.Patchs.Count | Should -Be 2 }
             It "Recupere le nom des fichiers patchs" {$result.Patchs[0].Name | Should -Be "file0.patch" }
         }
-
         Context "Le repository git ne contient pas de patchs" {
             BeforeAll { Mock -ModuleName Patchouli Get-ChildItem { return @() } -ParameterFilter { $Filter -eq "*.patch" } }
             BeforeEach { $result = New-PatchConfiguration }
@@ -56,20 +55,14 @@ Describe "La configuration du patch" {
             }
         }
         Context "Le repository git est invalide" {
-            It "Intercepte une erreur" {
-                { New-PatchConfiguration -Repository "/this/directory/does/not/exists" } | Should -Throw
-            }
+            It "Intercepte une erreur" { { New-PatchConfiguration -Repository "/this/directory/does/not/exists" } | Should -Throw }
         }
     }
 }
 
 Describe "La selection avec fzf" {
     Context "Si fzf est disponible" {
-        BeforeAll {
-            Mock -ModuleName Patchouli New-Configuration   { New-ConfigurationMock -Count 2  }
-            Mock -ModuleName Patchouli Select-Object   { Get-DummyFileName -Index 1  } -ParameterFilter   { $ExpandProperty -eq "FullName"  }
-            Mock -ModuleName Patchouli fzf { Get-DummyFileName -Index 1    }
-        }
+        BeforeAll { Mock -ModuleName Patchouli fzf { Get-DummyFileName -Index 1    } }
         BeforeEach { Select-PatchWithFzf }
         It "Selectionne avec fzf" { Assert-MockCalled -ModuleName Patchouli fzf -Exactly 1 }
     }
