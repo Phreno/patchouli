@@ -35,9 +35,8 @@ Describe "La configuration du patch" {
     Describe "La propriete Patchs" {
         Context "Le repository git contient des patchs" {
             BeforeAll { Mock -ModuleName Patchouli Get-ChildItem { return New-FileMock -Count 2 } -ParameterFilter { $Filter -eq "*.patch" } }
-            BeforeEach { $result = New-PatchConfiguration }
-            It "Recupere les patchs du repository git" { $result.Patchs.Count | Should -Be 2 }
-            It "Recupere le nom des fichiers patchs" {$result.Patchs[0].Name | Should -Be "file0.patch" }
+            It "Recupere les patchs du repository git" { (New-PatchConfiguration).Patchs.Count | Should -Be 2 }
+            It "Recupere le nom des fichiers patchs" { (New-PatchConfiguration).Patchs[0].Name | Should -Be "file0.patch" }
         }
         Context "Le repository git ne contient pas de patchs" {
             BeforeAll { Mock -ModuleName Patchouli Get-ChildItem { return @() } -ParameterFilter { $Filter -eq "*.patch" } }
