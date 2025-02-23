@@ -35,10 +35,12 @@ function Test-ForModification {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]
+        [ValidateScript({ Test-Path "$_/.git" -PathType Container })]
         [string]$ModulePath = "."
     )
     Write-Debug "Recherche de modifications pour le module: $ModulePath"
-    $nul -ne (git status --porcelain $_.Directory.FullName )
+    try { $nul -ne (git status --porcelain $_.Directory.FullName ) }
+    catch { $false }
 }
 
 #function Show-ModifiedModules {

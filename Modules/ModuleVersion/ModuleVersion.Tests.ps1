@@ -6,7 +6,7 @@ Describe "Version" {
     Describe "Teste la modification d'un module" {
 
         Context "Un module est modifié" {
-            BeforeAll { Mock -ModuleName ModuleVersion git { return $true } }
+            BeforeAll { Mock -ModuleName ModuleVersion git { "M some/modified/iles" } }
             It "Retourne vrai si le module est modifié" { Test-ModuleVersionForModification | Should -Be $true }
         }
         Context "Un module n'est pas modifié" {
