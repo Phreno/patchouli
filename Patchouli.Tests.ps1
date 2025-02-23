@@ -76,7 +76,6 @@ Describe "Recuperer les diff" {
     }
 }
 
-
 Describe "Creer un patch" {
     BeforeAll { 
         Mock -ModuleName Patchouli New-Configuration        { New-ConfigurationMock -Count 2 }

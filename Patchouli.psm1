@@ -45,6 +45,6 @@ function New-Diff {
         [hashtable]$Configuration = (New-Configuration)
     )
     process {
-        $configuration | Show-DifferenceSummary | Select-File | Out-Difference
+        $configuration | Show-DifferenceSummary | Select-FuzzyItem | Out-Difference
     }
 }

@@ -1,6 +1,13 @@
 function Test-Availability {
-    try { fzf --version | Out-Null; return $true }
-    catch { return $false }
+    begin { $result = $false }
+    process {
+        try { $result = fzf --version | Out-Null; return $true }
+        catch { $result = $false }
+    }
+    end {
+        Write-Debug "Test-Availability? $result"
+        $result
+    }
 }
 
 function Select-Index {
@@ -55,7 +62,8 @@ function Select-Item {
         [Parameter(ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [string[]]$Items = (Get-ChildItem -File).FullName,
-        [switch]$ByIndex
+        [switch]$ByIndex,
+        [string]$Preview = "cat"
     )
     Write-Debug "Select-Item: Items count: $($Items.Count)"
     function Confirm-Fzf { 
@@ -63,7 +71,7 @@ function Select-Item {
         Write-Debug "Confirm-Fzf? $result"
         $result
     }
-    if (Confirm-Fzf) { $result = Read-Selection -Items:($Items) }
+    if (Confirm-Fzf) { $result = Read-Selection -Items:($Items) -Preview:$Preview }
     else { $result = Read-SelectionByIndex -Items $Items }
     if ($null -ne $result) { $result.Trim() }
 }
