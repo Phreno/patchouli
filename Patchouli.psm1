@@ -1,3 +1,14 @@
+<#
+.SYNOPSIS
+    This module is a wrapper around git diff command to create patch files.
+.DESCRIPTION
+    This module provides functions to create patch files from git diff command.
+    The module provides the following functions:
+    - New-Configuration: Creates a new configuration object.
+    - Show-DifferenceSummary: Shows the difference summary.
+    - Out-Difference: Outputs the difference to a patch file.
+    - New-Diff: Creates a new patch file.
+#>
 function New-Configuration {
     [CmdletBinding()]
     Param(
