@@ -5,13 +5,6 @@ function Update-ModuleVersion {
         [string]$ManifestPath
     )
     Write-Debug "Mise à jour de la version du module: $ManifestPath"
-    Write-Debug "Forcer la mise à jour: $Force"
-    $isModified = $null -ne (git status --porcelain "$ManifestPath")
-    
-    if (-not $isModified) {
-        Write-Debug "Module non modifié, pas de mise à jour"
-        return
-    }
     $manifest = Import-PowerShellDataFile $manifestPath
     
     $currentVersion = [System.Version]$manifest.ModuleVersion
@@ -27,7 +20,7 @@ function Update-ModuleVersion {
     
     Update-ModuleManifest -Path $manifestPath -ModuleVersion $newVersion
     
-    Write-Output "Version mise à jour: $newVersion"
+    Write-Output "Version mise à jour: $manifestPath $newVersion"
 }
 
 function Test-ForModification {

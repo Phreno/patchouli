@@ -4,3 +4,5 @@ Gestionnaire de patch
 
 
 ## Description
+
+Patchouli est un gestionnaire de patch pour les jeux de Paradox Interactive. Il permet de gérer les mods et les patchs de manière simple et efficace.
