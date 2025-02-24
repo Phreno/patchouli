@@ -79,12 +79,11 @@ Describe "Creer un patch" {
     BeforeAll { 
         Mock -ModuleName Patchouli New-Configuration        { New-ConfigurationMock -Count 2 }
         Mock -ModuleName Patchouli Show-DifferenceSummary   { New-FileMock          -Count 2 } 
-        Mock -ModuleName Patchouli Select-File              { Get-DummyFileName     -Index 1 }
-        Mock -ModuleName Patchouli Test-Path                {  $true                         } -ParameterFilter { $Path -eq "file1.patch" }
+        Mock -ModuleName Fuzzy Select-Item              { Get-DummyFileName     -Index 1 }
         Mock -ModuleName Patchouli Out-Difference
     }
     BeforeEach { New-PatchDiff }
-    # It "Fait appel a git diff" { Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1 }
+     It "Fait appel a git diff" { Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1 }
     # It "Selectionne le patch"  { Assert-MockCalled -ModuleName Patchouli Select-WithFzf         -Exactly 1 }
     # It "Ecrit le patch"        { Assert-MockCalled -ModuleName Patchouli Out-Difference         -Exactly 1 }
 }

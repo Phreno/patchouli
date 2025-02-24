@@ -10,6 +10,21 @@
     - New-Diff: Creates a new patch file.
 #>
 function New-Configuration {
+    <#
+    .SYNOPSIS
+        Creates a new configuration object.
+    .DESCRIPTION
+        Creates a new configuration object.
+    .PARAMETER Repository
+        The repository to use.
+    .PARAMETER Patchs
+        The patch files to use. A list of patch files.
+    .EXAMPLE
+        New-Configuration
+        Creates a new configuration object.
+    .OUTPUTS
+        System.Collections.Hashtable
+    #>
     [CmdletBinding()]
     Param(
         [ValidateScript({ Test-Path "$_/.git" -PathType Container })]
@@ -25,10 +40,23 @@ function New-Configuration {
 
 
 function Show-DifferenceSummary {
+    <#
+    .SYNOPSIS
+        Shows the difference summary.
+    .DESCRIPTION
+        Shows the files that have been modified since the last commit.
+    .PARAMETER Configuration
+        The configuration object.
+    .EXAMPLE
+        Show-DifferenceSummary
+        Shows the difference summary.
+    .OUTPUTS
+        String[]
+    #>
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)]
-        [hashtable]$Configuration = (New-Configuration)
+        $Configuration = (New-Configuration)
     )
     begin {
         $currentPath = Get-Location
@@ -40,6 +68,19 @@ function Show-DifferenceSummary {
 
 
 function Out-Difference {
+    <#
+    .SYNOPSIS
+        Outputs the difference to a patch file.
+    .DESCRIPTION
+        Outputs the difference to a patch file.
+    .PARAMETER File
+        The file to output the difference to.
+    .EXAMPLE
+        Show-DifferenceSummary | Select-FuzzyItem | Out-Difference
+        Outputs the difference to a patch file.
+    .OUTPUTS
+        System.IO.FileInfo
+    #>
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline, Mandatory)]
@@ -53,9 +94,8 @@ function New-Diff {
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)]
-        [hashtable]$Configuration = (New-Configuration)
+        $Configuration = (New-Configuration)
     )
-    process {
-        $configuration | Show-DifferenceSummary | Select-FuzzyItem | Out-Difference
-    }
+    Write-Debug "Configuration: $Configuration"
+    Select-FuzzyItem -preview "git diff" -Items ($configuration | Show-DifferenceSummary) | Out-Difference
 }
