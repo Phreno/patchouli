@@ -140,6 +140,12 @@ function New-Diff {
 }
 
 function Test-Applicable {
-    $true
-    
+    [CmdletBinding()]
+    Param(
+        [Parameter(ValueFromPipeline)]
+        [ValidateScript({ Test-Path $_ -PathType Leaf })]
+        [string]$patch
+    )
+    git apply --check $patch.FullName
+    return $?
 }
