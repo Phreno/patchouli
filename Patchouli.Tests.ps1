@@ -83,9 +83,7 @@ Describe "Creer un patch" {
         Mock -ModuleName Patchouli Test-Path { $true }
         Mock -ModuleName Patchouli Get-Item { [PSCustomObject]@{ Name = Get-DummyFileName -Index 1; FullName = Get-DummyFileName -Index 1 -FullName } } -ParameterFilter { $Path -match "file1.patch" }
     }
-    BeforeEach {
-        New-PatchDiff 
-    }
+    BeforeEach { New-PatchDiff }
     
     It "Selectionne le fichier a patcher"  { Assert-MockCalled -ModuleName Patchouli Select-Item -Exactly 1 }
     It "Affiche les differences"           { Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1 }
@@ -93,6 +91,13 @@ Describe "Creer un patch" {
     It "Doit retourner les fichiers patchs" { (New-PatchDiff).Name | Should -Be "file1.patch" }
 } 
  
+Describe "Peut Appliquer une configuration ?" {
+    BeforeEach { $result = Test-PatchApplicable }
+    It "Doit retourner vrai" { $Result | Should -Be $true }   
+}
+
+
+
 Describe "Applique un patch" -skip {
 }
 

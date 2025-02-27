@@ -138,3 +138,8 @@ function New-Diff {
     $patches | Out-Difference
     $patches | ForEach-Object { Get-Item "$_.patch" }
 }
+
+function Test-Applicable {
+    $true
+    
+}
