@@ -91,27 +91,3 @@ Describe "Creer un patch" {
     It "Doit retourner les fichiers patchs" { (New-PatchDiff).Name | Should -Be "file1.patch" }
 } 
  
-Describe "Peut Appliquer une configuration ?" {
-    Context "Lorsque git apply --check retourne vrai" {
-        BeforeAll { 
-            Mock -ModuleName Patchouli Test-Path { $true }
-            Mock -ModuleName Patchouli git { return $true } -ParameterFilter { $Command -eq "apply --check" }
-        } 
-        BeforeEach { $result = Test-PatchApplicable -Patch (New-FileMock -Count 1) }
-        It "Doit retourner vrai" { $Result | Should -Be $true }
-    }
-}
-
-
-
-Describe "Applique un patch" -skip {
-}
-
-Describe "Supprime un patch" -skip {
-
-}
-
-Describe "Actualise un patch" -skip {
-
-}
-

@@ -146,6 +146,8 @@ function Test-Applicable {
         [ValidateScript({ Test-Path $_ -PathType Leaf })]
         [string]$patch
     )
-    git apply --check $patch.FullName
-    return $?
+    end {
+        git apply --check $patch.FullName
+        return $?
+    }
 }
