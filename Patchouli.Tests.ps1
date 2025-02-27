@@ -93,7 +93,10 @@ Describe "Creer un patch" {
  
 Describe "Peut Appliquer une configuration ?" {
     BeforeEach { $result = Test-PatchApplicable }
-    It "Doit retourner vrai" { $Result | Should -Be $true }   
+    Context "Lorsque git apply --check retourne vrai" {
+        BeforeAll { Mock -ModuleName Patchouli git { return $true } } 
+        It "Doit retourner vrai" { $Result | Should -Be $true }
+    }
 }
 
 
