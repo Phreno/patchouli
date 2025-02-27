@@ -115,11 +115,26 @@ function Select-Item {
 
 
 function New-Diff {
+    <#
+    .SYNOPSIS
+        Creates a new patch file.
+    .DESCRIPTION
+        Creates a new patch file by looking at the difference between the current state and the last commit.
+    .PARAMETER Configuration
+        The configuration object. See New-Configuration.
+    .EXAMPLE
+        New-Diff
+        Creates a new patch file.
+    .OUTPUTS
+        System.IO.FileInfo[]
+    #>
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)]
         $Configuration = (New-Configuration)
     )
     Write-Debug "Configuration: $Configuration"
-    Select-Item -Items ($configuration | Show-DifferenceSummary) | Out-Difference
+    $patches = Select-Item -Items ($configuration | Show-DifferenceSummary)
+    $patches | Out-Difference
+    $patches | ForEach-Object { Get-Item "$_.patch" }
 }

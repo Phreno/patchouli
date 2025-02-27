@@ -81,6 +81,7 @@ Describe "Creer un patch" {
         Mock -ModuleName Patchouli Show-DifferenceSummary   { New-FileNameMock  -Count 2 } 
         Mock -ModuleName Patchouli Out-Difference 
         Mock -ModuleName Patchouli Test-Path { $true }
+        Mock -ModuleName Patchouli Get-Item { [PSCustomObject]@{ Name = Get-DummyFileName -Index 1; FullName = Get-DummyFileName -Index 1 -FullName } } -ParameterFilter { $Path -match "file1.patch" }
     }
     BeforeEach {
         New-PatchDiff 
@@ -89,6 +90,7 @@ Describe "Creer un patch" {
     It "Selectionne le fichier a patcher"  { Assert-MockCalled -ModuleName Patchouli Select-Item -Exactly 1 }
     It "Affiche les differences"           { Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1 }
     It "Ecrit le patch"                    { Assert-MockCalled -ModuleName Patchouli Out-Difference -Exactly 1 }
+    It "Doit retourner les fichiers patchs" { (New-PatchDiff).Name | Should -Be "file1.patch" }
 } 
  
 Describe "Applique un patch" -skip {
