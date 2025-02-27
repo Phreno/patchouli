@@ -88,7 +88,7 @@ Describe "Creer un patch" {
     
     It "Selectionne le fichier a patcher"  { Assert-MockCalled -ModuleName Patchouli Select-Item -Exactly 1 }
     It "Affiche les differences"           { Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1 }
-    #It "Ecrit le patch"                   { Assert-MockCalled -ModuleName Patchouli Out-PatchDifference -Exactly 1 }
+    It "Ecrit le patch"                    { Assert-MockCalled -ModuleName Patchouli Out-Difference -Exactly 1 }
 } 
  
 Describe "Applique un patch" -skip {

@@ -92,6 +92,12 @@ function Out-Difference {
 
 
 function Select-Item {
+    <#
+    .SYNOPSIS
+        Selects an item from a list.
+    .DESCRIPTION
+    
+    #>
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)]
