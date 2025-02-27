@@ -96,7 +96,14 @@ function Select-Item {
     .SYNOPSIS
         Selects an item from a list.
     .DESCRIPTION
-    
+        Proxy for Select-FuzzyItem in the Fuzzy module. (In order to make it easier to test)
+    .PARAMETER Items
+        The items to select from.
+    .EXAMPLE
+        Show-DifferenceSummary | Select-Item
+        Selects an item from a list.
+    .OUTPUTS
+        String
     #>
     [CmdletBinding()]
     Param(
