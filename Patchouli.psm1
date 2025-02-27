@@ -90,6 +90,17 @@ function Out-Difference {
     process { git diff -p $file | Out-File "$file.patch" }
 }
 
+
+function Select-Item {
+    [CmdletBinding()]
+    Param(
+        [Parameter(ValueFromPipeline)]
+        $Items
+    )
+    Select-FuzzyItem -preview "git diff" -Items $Items
+}
+
+
 function New-Diff {
     [CmdletBinding()]
     Param(
@@ -97,5 +108,5 @@ function New-Diff {
         $Configuration = (New-Configuration)
     )
     Write-Debug "Configuration: $Configuration"
-    Select-FuzzyItem -preview "git diff" -Items ($configuration | Show-DifferenceSummary) | Out-Difference
+    Select-Item -Items ($configuration | Show-DifferenceSummary) | Out-Difference
 }

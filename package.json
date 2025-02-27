@@ -4,8 +4,7 @@
   "description": "Gestionnaire de patch git en powershell",
   "main": "Patch.psm1",
   "scripts": {
-    "test": "powershell -c 'Invoke-Pester -OutPut Detailed'",
-    "testFuzzy": "powershell -c 'Invoke-Pester -OutPut Detailed -Tag Fuzzy'",
+    "test": "powershell -c 'Invoke-Pester'",
     "checkGreen": "npm run test | tail -n 1 | grep 'Failed: 0'",
     "commit": "aicommits --all; git push",
     "publish": "npm run checkGreen && npm run patch && npm run commit",

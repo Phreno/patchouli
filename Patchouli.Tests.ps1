@@ -1,6 +1,5 @@
 BeforeAll {
     Import-Module $PSCommandPath.Replace('.Tests.ps1', '.psd1') -Force
-
     function Get-DummyFileName {
         param($index = 0, [switch]$fullName)
         if ($fullName) { "/fullname/file$index.patch" }
@@ -77,19 +76,22 @@ Describe "Recuperer les diff" {
 
 Describe "Creer un patch" {
     BeforeAll { 
-        Mock -ModuleName Patchouli New-Configuration        { New-ConfigurationMock -Count 2 }
-        Mock -ModuleName Patchouli Show-DifferenceSummary   { New-FileMock          -Count 2 } 
-        Mock -ModuleName Fuzzy Select-Item              { Get-DummyFileName     -Index 1 }
-        Mock -ModuleName Patchouli Out-Difference
+        Mock -ModuleName Patchouli Select-Item { Get-DummyFileName -Index 1 }
+        Mock -ModuleName Patchouli New-Configuration { New-ConfigurationMock -Count 2 }
+        Mock -ModuleName Patchouli Show-DifferenceSummary   { New-FileNameMock  -Count 2 } 
+        Mock -ModuleName Patchouli Out-Difference 
+        Mock -ModuleName Patchouli Test-Path { $true }
     }
-    BeforeEach { New-PatchDiff }
-     It "Fait appel a git diff" { Assert-MockCalled -ModuleName Patchouli Show-DifferenceSummary -Exactly 1 }
-    # It "Selectionne le patch"  { Assert-MockCalled -ModuleName Patchouli Select-WithFzf         -Exactly 1 }
-    # It "Ecrit le patch"        { Assert-MockCalled -ModuleName Patchouli Out-Difference         -Exactly 1 }
-}
-
+    BeforeEach {
+        New-PatchDiff 
+    }
+    
+    It "Selectionne le fichier a patcher"  { Assert-MockCalled -ModuleName Patchouli Select-Item -Exactly 1 }
+    #It "Affiche les differences"           { Assert-MockCalled -ModuleName Patchouli Show-PatchDifferenceSummary -Exactly 1 }
+    #It "Ecrit le patch"                   { Assert-MockCalled -ModuleName Patchouli Out-PatchDifference -Exactly 1 }
+} 
+ 
 Describe "Applique un patch" -skip {
-
 }
 
 Describe "Supprime un patch" -skip {
